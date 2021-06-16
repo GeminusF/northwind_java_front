@@ -1,17 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Icon, Label, Menu, Table } from "semantic-ui-react";
+import { Icon, Button, Menu, Table } from "semantic-ui-react";
 import ProductService from "../services/productService";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../store/actions/cartActions";
+import { toast } from "react-toastify";
+
 export default function ProductList() {
+  const dispatch = useDispatch();
+
   const [products, setProducts] = useState([]);
 
   // component yuklendigin isleyecek kod ngOnInit angulardaki
-  useEffect(()=>{
-    let productService = new ProductService()
-    productService.getProducts().then(result=>setProducts(result.data.data)) //promise struktur
-  }, []) // lifecycle ucun []
+  useEffect(() => {
+    let productService = new ProductService();
+    productService
+      .getProducts()
+      .then((result) => setProducts(result.data.data)); //promise struktur
+  }, []); // lifecycle ucun []
 
-  
+  const handleAddToCart = (product) => {
+    dispatch(addToCart(product));
+    toast.success(`${product.productName} səbətə əlavə olundu`)
+  };
+  // 21- 23 funksiya diger yazi novudu
   return (
     <div>
       <Table celled>
@@ -22,17 +34,27 @@ export default function ProductList() {
             <Table.HeaderCell>Stok ədədi</Table.HeaderCell>
             <Table.HeaderCell>Açıqlama</Table.HeaderCell>
             <Table.HeaderCell>Kategoriya</Table.HeaderCell>
+            <Table.HeaderCell></Table.HeaderCell>
           </Table.Row>
         </Table.Header>
 
         <Table.Body>
           {products.map((product) => (
             <Table.Row key={product.id}>
-              <Table.Cell><Link to={`/products/${product.productName}`}>{product.productName}</Link></Table.Cell>
+              <Table.Cell>
+                <Link to={`/products/${product.productName}`}>
+                  {product.productName}
+                </Link>
+              </Table.Cell>
               <Table.Cell>{product.unitPrice}</Table.Cell>
               <Table.Cell>{product.unitsInStock}</Table.Cell>
               <Table.Cell>{product.quantityPerUnit}</Table.Cell>
               <Table.Cell>{product.category.categoryName}</Table.Cell>
+              <Table.Cell>
+                <Button color="teal" onClick={() => handleAddToCart(product)}>
+                  Səbətə əlavə elə
+                </Button>
+              </Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>
@@ -61,3 +83,7 @@ export default function ProductList() {
 }
 
 // Link halina getiri react router domdan gelir, back tick stringle kodu birlesdirir
+// Dispatchlede actionlara subscribe oluruq, dispact harda gorsem orda bir funksiyanin cagirmaq isteyirem
+// Dispatch mende calisdiracagim funksiyanin adini yeni action isteyir
+// onClick={() => handleAddToCart(product)} avtomatik yeniler deye funksiyada avtomatik isleyir ona gore bu funksiyani
+// diger funksiyaya elave eleyirik
